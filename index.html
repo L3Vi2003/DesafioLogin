@@ -3,85 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Autenticación Segura</title>
+    <title>Sistema Web Simple</title>
     <link rel="stylesheet" href="./css/estilos.css">
 </head>
 <body>
 
     <div class="container">
-        <div id="login-section" class="form-container active">
-            <h2>Inicio de Sesión</h2>
-            <form id="loginForm">
-                <div class="input-group">
-                    <label>Usuario (Email)</label>
-                    <input type="email" id="loginEmail" required>
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="loginPassword" required>
-                        <span class="toggle-pass" onclick="togglePassword('loginPassword')">👁️</span>
-                    </div>
-                </div>
-                <button type="submit">Ingresar</button>
-            </form>
-            <p id="loginMessage" class="message"></p>
-            <p class="link">¿No tienes cuenta? <a href="#" onclick="showSection('register-section')">Regístrate</a></p>
-            <p class="link" id="recoveryLink" style="display:none;">
-                <a href="#" onclick="showSection('recovery-section')" style="color:red;">Recuperar contraseña (Cuenta Bloqueada)</a>
+        
+        <div id="pantalla-login">
+            <h2>Iniciar Sesión</h2>
+            <label>Usuario (Email)</label>
+            <input type="email" id="loginEmail">
+            
+            <label>Contraseña</label>
+            <div class="password-wrapper">
+                <input type="password" id="loginPass">
+                <span class="ojito" onclick="mostrarOcultar('loginPass')">👁️</span>
+            </div>
+
+            <button onclick="hacerLogin()">Ingresar</button>
+            <p id="mensajeLogin" class="mensaje"></p>
+
+            <p class="link">¿No tienes cuenta? <a href="#" onclick="irA('pantalla-registro')">Regístrate aquí</a></p>
+            <p class="link" id="linkRecuperar" style="display:none;">
+                <a href="#" onclick="irA('pantalla-recuperar')" style="color:red;">Recuperar contraseña</a>
             </p>
         </div>
 
-        <div id="register-section" class="form-container">
+        <div id="pantalla-registro" style="display:none;">
             <h2>Crear Cuenta</h2>
-            <form id="registerForm">
-                <div class="input-group">
-                    <label>Nombre Completo</label>
-                    <input type="text" id="regName" required>
-                </div>
-                <div class="input-group">
-                    <label>Email (Usuario)</label>
-                    <input type="email" id="regEmail" required>
-                </div>
-                <div class="input-group">
-                    <label>Celular</label>
-                    <input type="text" id="regMobile" required>
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="regPassword" required>
-                        <span class="toggle-pass" onclick="togglePassword('regPassword')">👁️</span>
-                    </div>
-                    <small>Mín 6 caracteres, 1 Mayús, 1 minús, 1 número, 1 especial.</small>
-                </div>
-                <button type="submit">Registrar</button>
-            </form>
-            <p id="regMessage" class="message"></p>
-            <p class="link">¿Ya tienes cuenta? <a href="#" onclick="showSection('login-section')">Inicia Sesión</a></p>
+            <label>Nombre</label>
+            <input type="text" id="regNombre">
+
+            <label>Email</label>
+            <input type="email" id="regEmail">
+
+            <label>Celular</label>
+            <input type="number" id="regCelular">
+
+            <label>Contraseña</label>
+            <div class="password-wrapper">
+                <input type="password" id="regPass">
+                <span class="ojito" onclick="mostrarOcultar('regPass')">👁️</span>
+            </div>
+            <small>Debe tener mayúscula, minúscula, número y símbolo.</small>
+
+            <button onclick="hacerRegistro()">Registrarme</button>
+            <p id="mensajeRegistro" class="mensaje"></p>
+
+            <p class="link"><a href="#" onclick="irA('pantalla-login')">Volver al Login</a></p>
         </div>
 
-        <div id="recovery-section" class="form-container">
+        <div id="pantalla-recuperar" style="display:none;">
             <h2>Recuperar Contraseña</h2>
-            <form id="recoveryForm">
-                <div class="input-group">
-                    <label>Email de la cuenta</label>
-                    <input type="email" id="recEmail" required>
-                </div>
-                <div class="input-group">
-                    <label>Nueva Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="recPassword" required>
-                        <span class="toggle-pass" onclick="togglePassword('recPassword')">👁️</span>
-                    </div>
-                </div>
-                <button type="submit">Actualizar Contraseña</button>
-            </form>
-            <p id="recMessage" class="message"></p>
-            <p class="link"><a href="#" onclick="showSection('login-section')">Volver al Login</a></p>
+            <label>Tu Email Registrado</label>
+            <input type="email" id="recEmail">
+
+            <label>Nueva Contraseña</label>
+            <div class="password-wrapper">
+                <input type="password" id="recPass">
+                <span class="ojito" onclick="mostrarOcultar('recPass')">👁️</span>
+            </div>
+
+            <button onclick="hacerRecuperacion()">Cambiar Contraseña</button>
+            <p id="mensajeRecuperar" class="mensaje"></p>
+
+            <p class="link"><a href="#" onclick="irA('pantalla-login')">Volver al Login</a></p>
         </div>
+
     </div>
 
-    <script src="./js/main.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

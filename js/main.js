@@ -1,155 +1,143 @@
-/* SISTEMA DE GESTIÓN DE USUARIOS
-    Usa localStorage para simular una base de datos.
-*/
+// --- CONFIGURACIÓN DE VALIDACIONES (REGEX) ---
+// Estas son las reglas que pide el profesor
+var expCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+var expNombre = /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/;
+var expPass = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+var expCelular = /^[0-9]{7,12}$/;
 
-// --- EXPRESIONES REGULARES (REGEX) ---
-const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const regexName = /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$/;
-const regexMobile = /^[0-9]{7,12}$/;
-// Contraseña: min 6 caracteres, 1 minúscula, 1 mayúscula, 1 número, 1 especial
-const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
-
-// --- UTILIDADES ---
-
-// Función para mostrar/ocultar contraseña
-function togglePassword(fieldId) {
-    const input = document.getElementById(fieldId);
-    input.type = input.type === "password" ? "text" : "password";
-}
-
-// Función para cambiar entre Login, Registro y Recuperación
-function showSection(sectionId) {
-    document.querySelectorAll('.form-container').forEach(el => el.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
-    // Limpiar mensajes al cambiar
-    document.querySelectorAll('.message').forEach(el => el.textContent = '');
-}
-
-// Función para obtener usuarios del LocalStorage
-function getUsers() {
-    return JSON.parse(localStorage.getItem('users')) || [];
-}
-
-// Función para guardar usuarios en LocalStorage
-function saveUsers(users) {
-    localStorage.setItem('users', JSON.stringify(users));
-}
-
-// --- MÓDULO 1: REGISTRO ---
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const mobile = document.getElementById('regMobile').value;
-    const password = document.getElementById('regPassword').value;
-    const message = document.getElementById('regMessage');
-
-    // Validaciones
-    if (!regexName.test(name)) return showMsg(message, "Nombre inválido (solo letras).", "error");
-    if (!regexEmail.test(email)) return showMsg(message, "Correo inválido.", "error");
-    if (!regexMobile.test(mobile)) return showMsg(message, "Celular inválido (7-12 números).", "error");
-    if (!regexPassword.test(password)) return showMsg(message, "La contraseña no cumple los requisitos de seguridad.", "error");
-
-    let users = getUsers();
+// --- FUNCIONES DE NAVEGACIÓN ---
+function irA(idPantalla) {
+    // Ocultamos todas
+    document.getElementById('pantalla-login').style.display = 'none';
+    document.getElementById('pantalla-registro').style.display = 'none';
+    document.getElementById('pantalla-recuperar').style.display = 'none';
     
-    // Verificar si ya existe
-    if (users.find(user => user.email === email)) {
-        return showMsg(message, "El correo ya está registrado.", "error");
-    }
+    // Mostramos la que queremos
+    document.getElementById(idPantalla).style.display = 'block';
+    
+    // Limpiamos mensajes de error
+    document.getElementById('mensajeLogin').innerText = "";
+    document.getElementById('mensajeRegistro').innerText = "";
+    document.getElementById('mensajeRecuperar').innerText = "";
+}
 
-    // Crear usuario
-    users.push({
-        name: name,
-        email: email,
-        mobile: mobile,
-        password: password, // En un sistema real, esto debería ir encriptado (hash)
-        failedAttempts: 0,
-        isLocked: false
-    });
-
-    saveUsers(users);
-    showMsg(message, "¡Registro exitoso! Ahora inicia sesión.", "success");
-    document.getElementById('registerForm').reset();
-});
-
-// --- MÓDULO 2: LOGIN ---
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const message = document.getElementById('loginMessage');
-    const recoveryLink = document.getElementById('recoveryLink');
-
-    let users = getUsers();
-    let userIndex = users.findIndex(u => u.email === email);
-
-    if (userIndex === -1) {
-        return showMsg(message, "Usuario o contraseña incorrectos.", "error");
-    }
-
-    let user = users[userIndex];
-
-    // Verificar si está bloqueado
-    if (user.isLocked) {
-        recoveryLink.style.display = 'block';
-        return showMsg(message, "Cuenta bloqueada por intentos fallidos.", "error");
-    }
-
-    // Validar contraseña
-    if (user.password === password) {
-        // Éxito: Resetear intentos
-        user.failedAttempts = 0;
-        saveUsers(users);
-        showMsg(message, `Bienvenido al sistema, ${user.name}`, "success");
-        recoveryLink.style.display = 'none';
+function mostrarOcultar(idInput) {
+    var input = document.getElementById(idInput);
+    if (input.type === "password") {
+        input.type = "text";
     } else {
-        // Fallo: Aumentar contador
-        user.failedAttempts++;
-        if (user.failedAttempts >= 3) {
-            user.isLocked = true;
-            recoveryLink.style.display = 'block';
-            showMsg(message, "Cuenta bloqueada por intentos fallidos.", "error");
+        input.type = "password";
+    }
+}
+
+// --- 1. FUNCIÓN DE REGISTRO ---
+function hacerRegistro() {
+    // 1. Obtener valores
+    var nombre = document.getElementById('regNombre').value;
+    var email = document.getElementById('regEmail').value;
+    var cel = document.getElementById('regCelular').value;
+    var pass = document.getElementById('regPass').value;
+    var mensaje = document.getElementById('mensajeRegistro');
+
+    // 2. Validar con Regex (Si falla, detiene la función)
+    if (expNombre.test(nombre) == false) {
+        mensaje.innerText = "El nombre solo debe tener letras.";
+        return;
+    }
+    if (expCorreo.test(email) == false) {
+        mensaje.innerText = "El correo no es válido.";
+        return;
+    }
+    if (expCelular.test(cel) == false) {
+        mensaje.innerText = "El celular debe tener entre 7 y 12 números.";
+        return;
+    }
+    if (expPass.test(pass) == false) {
+        mensaje.innerText = "La contraseña es muy débil (Falta Mayus, numero o símbolo).";
+        return;
+    }
+
+    // 3. Guardar datos en el navegador (Sin JSON)
+    localStorage.setItem("usuario_nombre", nombre);
+    localStorage.setItem("usuario_email", email);
+    localStorage.setItem("usuario_pass", pass);
+    localStorage.setItem("intentos_fallidos", "0"); // Iniciamos contador en 0
+
+    // 4. Éxito
+    alert("¡Cuenta creada con éxito!");
+    irA('pantalla-login');
+}
+
+// --- 2. FUNCIÓN DE LOGIN ---
+function hacerLogin() {
+    var emailIngresado = document.getElementById('loginEmail').value;
+    var passIngresado = document.getElementById('loginPass').value;
+    var mensaje = document.getElementById('mensajeLogin');
+    var linkRecuperar = document.getElementById('linkRecuperar');
+
+    // Recuperamos los datos guardados
+    var emailGuardado = localStorage.getItem("usuario_email");
+    var passGuardada = localStorage.getItem("usuario_pass");
+    var intentos = parseInt(localStorage.getItem("intentos_fallidos")); // Convertir texto a numero
+
+    // Verificar si existe usuario
+    if (!emailGuardado) {
+        mensaje.innerText = "No hay ningún usuario registrado.";
+        return;
+    }
+
+    // Verificar bloqueo
+    if (intentos >= 3) {
+        mensaje.innerText = "Cuenta BLOQUEADA por intentos fallidos.";
+        linkRecuperar.style.display = "block"; // Mostrar botón de recuperar
+        return;
+    }
+
+    // Verificar credenciales
+    if (emailIngresado == emailGuardado && passIngresado == passGuardada) {
+        // Éxito
+        localStorage.setItem("intentos_fallidos", "0"); // Resetear intentos
+        mensaje.style.color = "green";
+        mensaje.innerText = "¡Bienvenido " + localStorage.getItem("usuario_nombre") + "!";
+        linkRecuperar.style.display = "none";
+    } else {
+        // Error
+        intentos = intentos + 1; // Sumar 1 intento
+        localStorage.setItem("intentos_fallidos", intentos); // Guardar nuevo numero
+        
+        if (intentos >= 3) {
+            mensaje.innerText = "Cuenta BLOQUEADA. Usa 'Recuperar contraseña'.";
+            linkRecuperar.style.display = "block";
         } else {
-            showMsg(message, `Contraseña incorrecta. Intentos restantes: ${3 - user.failedAttempts}`, "error");
+            mensaje.innerText = "Contraseña incorrecta. Intentos: " + intentos + "/3";
         }
-        saveUsers(users);
     }
-});
+}
 
-// --- MÓDULO 3: RECUPERACIÓN ---
-document.getElementById('recoveryForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const email = document.getElementById('recEmail').value;
-    const newPassword = document.getElementById('recPassword').value;
-    const message = document.getElementById('recMessage');
+// --- 3. FUNCIÓN DE RECUPERAR CONTRASEÑA ---
+function hacerRecuperacion() {
+    var emailIngresado = document.getElementById('recEmail').value;
+    var nuevaPass = document.getElementById('recPass').value;
+    var mensaje = document.getElementById('mensajeRecuperar');
 
-    // Validar seguridad de la nueva contraseña
-    if (!regexPassword.test(newPassword)) {
-        return showMsg(message, "La contraseña no cumple los requisitos de seguridad.", "error");
+    var emailGuardado = localStorage.getItem("usuario_email");
+
+    // Validar que el email coincida con el registrado
+    if (emailIngresado != emailGuardado) {
+        mensaje.innerText = "Ese correo no coincide con el registrado.";
+        return;
     }
 
-    let users = getUsers();
-    let userIndex = users.findIndex(u => u.email === email);
-
-    if (userIndex !== -1) {
-        // Actualizar datos
-        users[userIndex].password = newPassword;
-        users[userIndex].failedAttempts = 0; // Reiniciar intentos
-        users[userIndex].isLocked = false;   // Desbloquear cuenta
-        
-        saveUsers(users);
-        showMsg(message, "Contraseña actualizada. Cuenta desbloqueada.", "success");
-        document.getElementById('recoveryForm').reset();
-        
-        // Opcional: Redirigir al login después de unos segundos
-        setTimeout(() => showSection('login-section'), 2000);
-    } else {
-        showMsg(message, "Correo no encontrado.", "error");
+    // Validar la nueva contraseña con Regex
+    if (expPass.test(nuevaPass) == false) {
+        mensaje.innerText = "La nueva contraseña no cumple los requisitos de seguridad.";
+        return;
     }
-});
 
-// Helper para mensajes
-function showMsg(element, text, type) {
-    element.textContent = text;
-    element.className = `message ${type}`;
+    // Actualizar contraseña y desbloquear
+    localStorage.setItem("usuario_pass", nuevaPass);
+    localStorage.setItem("intentos_fallidos", "0"); // Desbloqueamos
+
+    alert("Contraseña actualizada. Ya puedes entrar.");
+    irA('pantalla-login');
 }
